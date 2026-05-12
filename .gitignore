@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+**/dist/
+**/.next/
+**/out/
+
+# Environment variables
+.env
+.env.dev
+.env.production
+.env.local
+.env.*.local
+!*.example
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Docker local data
+.docker-data/
+
+# pnpm store cache
+.pnpm-store/
+.pnpm-debug.log
+
+# Actual env files (never commit secrets)
+.env.dev
+.env.production
+.env.local
+
+# Prisma generated (keep migrations)
+!prisma/migrations/

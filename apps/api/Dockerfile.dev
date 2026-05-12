@@ -1,0 +1,17 @@
+FROM node:22-alpine
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy package manifest and prisma schema
+COPY apps/api/package.json ./
+COPY prisma ./prisma
+
+# --ignore-scripts skips postinstall; prisma generate runs explicitly after
+RUN pnpm install --no-frozen-lockfile --ignore-scripts && pnpm prisma generate
+
+# Copy source (overridden at runtime by volume mount)
+COPY apps/api/ ./
+
+CMD ["pnpm", "run", "dev"]

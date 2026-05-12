@@ -1,0 +1,91 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: reservo-db-dev
+    env_file: .env.dev
+    volumes:
+      - reservo_pgdata_dev:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: reservo-redis-dev
+    volumes:
+      - reservo_redis_dev:/data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    container_name: reservo-api-dev
+    env_file: .env.dev
+    environment:
+      - CI=true
+    volumes:
+      # Solo se montan los directorios que cambian en dev — el resto (package.json, lockfile, node_modules) vive en el contenedor
+      - ./apps/api/src:/app/src
+      - ./prisma:/app/prisma
+      - ./apps/api/nest-cli.json:/app/nest-cli.json
+      - ./apps/api/tsconfig.json:/app/tsconfig.json
+      - ./apps/api/tsconfig.build.json:/app/tsconfig.build.json
+      - reservo_api_modules:/app/node_modules
+    ports:
+      - "4001:3001"
+      - "5556:5556"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    container_name: reservo-web-dev
+    env_file: .env.dev
+    environment:
+      - CI=true
+    volumes:
+      - ./apps/web/src:/app/src
+      - ./apps/web/next.config.ts:/app/next.config.ts
+      - ./apps/web/postcss.config.mjs:/app/postcss.config.mjs
+      - reservo_web_modules:/app/node_modules
+      - reservo_web_next:/app/.next
+    ports:
+      - "4000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+networks:
+  default:
+    name: reservo-dev
+
+volumes:
+  reservo_pgdata_dev:
+    name: reservo_pgdata_dev
+  reservo_redis_dev:
+    name: reservo_redis_dev
+  reservo_api_modules:
+    name: reservo_api_modules
+  reservo_web_modules:
+    name: reservo_web_modules
+  reservo_web_next:
+    name: reservo_web_next

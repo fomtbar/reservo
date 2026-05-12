@@ -1,0 +1,277 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  OWNER
+  MANAGER
+  RECEPTIONIST
+}
+
+enum BookingStatus {
+  HELD
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum BookingSource {
+  WALK_IN
+  PHONE
+  WEB
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  MERCADOPAGO
+}
+
+// ─── Users & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  phone        String?
+  passwordHash String
+  role         Role
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
+  bookingsCreated Booking[]  @relation("CreatedBy")
+  blocksCreated   Block[]    @relation("BlockCreatedBy")
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+// ─── Customers ────────────────────────────────────────────────────────────────
+
+model Customer {
+  id            String    @id @default(cuid())
+  name          String
+  phone         String
+  email         String?
+  notes         String?
+  totalBookings Int       @default(0)
+  lastBookingAt DateTime? @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+
+  bookings Booking[]
+
+  @@index([phone])
+  @@map("customers")
+}
+
+// ─── Courts ───────────────────────────────────────────────────────────────────
+
+model Court {
+  id                 String   @id @default(cuid())
+  name               String
+  sport              String
+  color              String   @default("#3B82F6")
+  active             Boolean  @default(true)
+  sortOrder          Int      @default(0)
+  defaultSlotMinutes Int      @default(60)
+  bufferMinutes      Int      @default(0)
+  metadata           Json     @default("{}")
+  createdAt          DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @db.Timestamptz(6)
+
+  bookings     Booking[]
+  openingHours OpeningHour[]
+  exceptions   ScheduleException[]
+  blocks       Block[]
+  pricingRules PricingRule[]
+
+  @@map("courts")
+}
+
+// ─── Schedule ─────────────────────────────────────────────────────────────────
+
+model OpeningHour {
+  id        String  @id @default(cuid())
+  courtId   String?
+  dayOfWeek Int     // 0 = domingo, 6 = sábado
+  opensAt   String  // "HH:MM"
+  closesAt  String  // "HH:MM"
+
+  court Court? @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@index([courtId, dayOfWeek])
+  @@map("opening_hours")
+}
+
+model ScheduleException {
+  id           String   @id @default(cuid())
+  courtId      String?
+  date         DateTime @db.Date
+  opensAt      String?  // "HH:MM" — null si closedAllDay
+  closesAt     String?  // "HH:MM" — null si closedAllDay
+  closedAllDay Boolean  @default(false)
+  reason       String?
+
+  court Court? @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@map("schedule_exceptions")
+}
+
+model Block {
+  id          String   @id @default(cuid())
+  courtId     String
+  startsAt    DateTime @db.Timestamptz(6)
+  endsAt      DateTime @db.Timestamptz(6)
+  reason      String?
+  createdById String?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  court     Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("BlockCreatedBy", fields: [createdById], references: [id])
+
+  @@index([courtId, startsAt])
+  @@map("blocks")
+}
+
+// ─── Bookings ─────────────────────────────────────────────────────────────────
+//
+// IMPORTANTE: el constraint de no-solapamiento NO puede expresarse en Prisma.
+// Está definido en la migración SQL como:
+//
+//   ALTER TABLE bookings ADD CONSTRAINT bookings_no_overlap
+//   EXCLUDE USING gist (
+//     court_id WITH =,
+//     tstzrange(starts_at, ends_at, '[)') WITH &&
+//   ) WHERE (status IN ('HELD', 'CONFIRMED'));
+//
+// Para habilitarlo también se requiere: CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+model Booking {
+  id            String        @id @default(cuid())
+  courtId       String
+  startsAt      DateTime      @db.Timestamptz(6)
+  endsAt        DateTime      @db.Timestamptz(6)
+  status        BookingStatus @default(HELD)
+  source        BookingSource @default(WALK_IN)
+  customerId    String?
+  createdById   String?
+  price         Decimal       @db.Decimal(10, 2)
+  priceOverride Boolean       @default(false)
+  deposit       Decimal       @default(0) @db.Decimal(10, 2)
+  paidAmount    Decimal       @default(0) @db.Decimal(10, 2)
+  paymentStatus PaymentStatus @default(UNPAID)
+  notes         String?
+  heldUntil     DateTime?     @db.Timestamptz(6)
+  cancelReason  String?
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(6)
+
+  court     Court     @relation(fields: [courtId], references: [id])
+  customer  Customer? @relation(fields: [customerId], references: [id])
+  createdBy User?     @relation("CreatedBy", fields: [createdById], references: [id])
+  payments  Payment[]
+
+  @@index([courtId, startsAt])
+  @@index([customerId])
+  @@index([status])
+  @@index([heldUntil])
+  @@map("bookings")
+}
+
+// ─── Pricing ──────────────────────────────────────────────────────────────────
+
+model PricingRule {
+  id         String   @id @default(cuid())
+  courtId    String?
+  dayOfWeek  Int?     // 0-6; null = todos los días
+  startTime  String?  // "HH:MM"
+  endTime    String?  // "HH:MM"
+  validFrom  DateTime? @db.Date
+  validUntil DateTime? @db.Date
+  amount     Decimal  @db.Decimal(10, 2)
+  priority   Int      @default(0)
+  label      String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  court Court? @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@map("pricing_rules")
+}
+
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
+model Payment {
+  id         String        @id @default(cuid())
+  bookingId  String
+  amount     Decimal       @db.Decimal(10, 2)
+  method     PaymentMethod
+  externalId String?
+  status     String        @default("completed")
+  raw        Json          @default("{}")
+  createdAt  DateTime      @default(now()) @db.Timestamptz(6)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("payments")
+}
+
+// ─── Audit ────────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  before    Json?
+  after     Json?
+  ip        String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ─── Tenant Settings ──────────────────────────────────────────────────────────
+
+model TenantSettings {
+  id                      Int      @id @default(1)
+  businessName            String   @default("Mi Club")
+  logoUrl                 String?
+  primaryColor            String   @default("#3B82F6")
+  timezone                String   @default("America/Argentina/Buenos_Aires")
+  currency                String   @default("ARS")
+  holdMinutes             Int      @default(15)
+  allowWebBooking         Boolean  @default(true)
+  requireDepositForWeb    Boolean  @default(false)
+  cancellationPolicyHours Int      @default(24)
+  whatsappEnabled         Boolean  @default(false)
+  mpAccessToken           String?
+  updatedAt               DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("tenant_settings")
+}

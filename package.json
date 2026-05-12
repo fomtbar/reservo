@@ -1,0 +1,17 @@
+{
+  "name": "reservo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "docker compose -f docker-compose.dev.yml up",
+    "dev:build": "docker compose -f docker-compose.dev.yml up --build",
+    "dev:down": "docker compose -f docker-compose.dev.yml down",
+    "migrate": "docker compose -f docker-compose.dev.yml exec api pnpm prisma migrate dev",
+    "generate": "docker compose -f docker-compose.dev.yml exec api pnpm prisma generate",
+    "studio": "docker compose -f docker-compose.dev.yml exec api pnpm prisma studio --port 5556 --browser none",
+    "test": "docker compose -f docker-compose.dev.yml exec api pnpm test"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

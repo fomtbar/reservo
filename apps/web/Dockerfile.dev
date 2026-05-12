@@ -1,0 +1,15 @@
+FROM node:22-alpine
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+COPY apps/web/package.json ./
+
+# --ignore-scripts skips native build scripts (sharp, etc.) — not needed in dev server
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
+
+# Copy source (overridden at runtime by volume mount)
+COPY apps/web/ ./
+
+CMD ["pnpm", "run", "dev"]
