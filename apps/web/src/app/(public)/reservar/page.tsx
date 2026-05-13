@@ -84,7 +84,7 @@ function ReservaPageContent() {
       customerEmail?: string;
       promoCode?: string;
     }) => {
-      const booking = await apiFetch('/bookings/hold', { method: 'POST', body: data });
+      const booking = await apiFetch<{ id: string }>('/bookings/hold', { method: 'POST', body: data });
 
       if (settings?.requireDepositForWeb && settings.mpEnabled) {
         setRedirectingToMp(true);

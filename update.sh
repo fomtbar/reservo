@@ -14,6 +14,12 @@ ENV_FILE="$REPO_DIR/.env.prod"
 
 [[ -f "$ENV_FILE" ]] || { echo "No existe .env.prod. Ejecutá deploy.sh primero."; exit 1; }
 
+# Exportar vars para que docker compose las vea como build args
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
 title "Actualizando código"
 git -C "$REPO_DIR" pull --ff-only
 success "Código actualizado"
