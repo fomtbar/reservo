@@ -1,6 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: var(--tenant-primary, #3b82f6);
-  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
+  --color-background: #ffffff;
+  --color-foreground: #09090b;
+
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
+
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #3b82f6;
+
+  --color-sidebar: #18181b;
+  --color-sidebar-foreground: #fafafa;
+  --color-sidebar-muted: #a1a1aa;
+  --color-sidebar-accent: #27272a;
+
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media print {
+  aside, nav, .print\:hidden { display: none !important; }
+  body { background: white; }
+  .rounded-xl, .rounded-lg { border-radius: 0 !important; }
 }

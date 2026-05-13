@@ -2,18 +2,14 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Reservo',
+  title: { template: '%s | Reservo', default: 'Reservo' },
   description: 'Sistema de reservas de canchas deportivas',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="bg-white text-gray-900 antialiased">{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

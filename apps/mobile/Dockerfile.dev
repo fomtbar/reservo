@@ -1,0 +1,12 @@
+FROM node:22-alpine
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+# Instalar dependencias (package.json copiado en build)
+COPY apps/mobile/package.json ./
+RUN pnpm install
+# Copiar el resto del código (overrideado por volumes en dev)
+COPY apps/mobile/ .
+# Metro bundler
+EXPOSE 8081
+EXPOSE 19000
+CMD ["pnpm", "start", "--", "--host", "lan", "--port", "8081", "--no-dev-client"]

@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Reservo",
+    "slug": "reservo",
+    "version": "1.0.0",
+    "scheme": "reservo",
+    "orientation": "portrait",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#3b82f6"
+      }
+    },
+    "assetBundlePatterns": ["**/*"],
+    "newArchEnabled": true
+  }
+}
