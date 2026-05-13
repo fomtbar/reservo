@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Phone, Clock, Calendar, ChevronRight } from 'lucide-react';
@@ -258,7 +259,7 @@ function CourtGrid({
             </div>
             {allowBooking && (
               <Link
-                href={href}
+                href={href as Route}
                 className="text-xs text-primary font-medium hover:underline mt-auto"
               >
                 Reservar →
