@@ -36,6 +36,13 @@ export async function apiFetch<T = unknown>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+
+    // On the client side, a 401 means the session is no longer valid.
+    // Dispatch an event so SessionWatcher can force signOut.
+    if (res.status === 401 && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
+
     throw new ApiError(err.message ?? err.error ?? `HTTP ${res.status}`, res.status);
   }
 
