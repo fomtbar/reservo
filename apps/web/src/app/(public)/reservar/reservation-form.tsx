@@ -59,7 +59,7 @@ export function ReservationForm({
         if (result.valid) {
           setPromo({ status: 'valid', description: result.description ?? null, code: result.code });
         } else {
-          setPromo({ status: 'invalid', reason: result.reason });
+          setPromo({ status: 'invalid', reason: result.reason ?? 'Código inválido' });
         }
       } catch {
         setPromo({ status: 'invalid', reason: 'No se pudo verificar el código' });
