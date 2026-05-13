@@ -97,7 +97,7 @@ export default function AgendaPage() {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <h2 className="text-sm font-medium capitalize">
+        <h2 className="text-sm font-medium capitalize" suppressHydrationWarning>
           {dateLabel}
           {isToday && <span className="ml-2 text-xs text-primary font-semibold">HOY</span>}
         </h2>

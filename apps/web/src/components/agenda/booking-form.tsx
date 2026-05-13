@@ -256,7 +256,7 @@ export function BookingForm({ open, onClose, courtId, courtName, initialStart, i
               )}
 
               {showDropdown && suggestions.length > 0 && (
-                <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md overflow-hidden">
+                <div className="absolute z-[200] mt-1 w-full rounded-md border border-border bg-white shadow-lg overflow-hidden dark:bg-gray-900">
                   {suggestions.map((c) => (
                     <button
                       key={c.id}
