@@ -38,6 +38,7 @@ Thumbs.db
 
 # Actual env files (never commit secrets)
 .env.dev
+.env.prod
 .env.production
 .env.local
 

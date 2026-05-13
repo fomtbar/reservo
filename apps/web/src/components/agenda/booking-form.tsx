@@ -249,7 +249,7 @@ export function BookingForm({ open, onClose, courtId, courtName, initialStart, i
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
-                    className="pl-8"
+                    className="pl-8 bg-muted/60 border-input focus-visible:bg-background"
                     autoComplete="off"
                   />
                 </div>
