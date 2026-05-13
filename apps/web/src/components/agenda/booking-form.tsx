@@ -225,7 +225,7 @@ export function BookingForm({ open, onClose, courtId, courtName, initialStart, i
 
           {/* Buscador de cliente */}
           <div className="space-y-3">
-            <div className="relative" ref={searchRef}>
+            <div ref={searchRef}>
               <Label className="mb-1.5 block">Buscar cliente existente</Label>
 
               {picked ? (
@@ -255,25 +255,24 @@ export function BookingForm({ open, onClose, courtId, courtName, initialStart, i
                 </div>
               )}
 
+              {/* Resultados inline — sin posición absoluta para evitar conflictos con el Dialog */}
               {showDropdown && suggestions.length > 0 && (
-                <div className="absolute z-[200] mt-1 w-full rounded-md border border-border bg-white shadow-lg overflow-hidden dark:bg-gray-900">
+                <div className="mt-1 rounded-md border-2 border-gray-300 bg-gray-50 overflow-hidden shadow-sm">
                   {suggestions.map((c) => (
                     <button
                       key={c.id}
                       type="button"
-                      className="flex w-full items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent text-left"
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-sm hover:bg-gray-100 text-left border-b border-gray-200 last:border-b-0"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => selectCustomer(c)}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{c.name}</div>
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="font-medium text-gray-900 truncate">{c.name}</div>
+                        <div className="text-xs text-gray-500 truncate">
                           {c.phone}{c.email ? ` · ${c.email}` : ''}
                         </div>
                       </div>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {c.totalBookings} reservas
-                      </span>
+                      <span className="text-xs text-gray-400 shrink-0">{c.totalBookings} res.</span>
                     </button>
                   ))}
                 </div>
