@@ -3,28 +3,27 @@ FROM node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-# NEXT_PUBLIC_* vars se hornean en el build — deben pasarse como ARGs
+# NEXT_PUBLIC_* se hornean en el bundle — deben pasarse como ARG en build time
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_MP_SANDBOX=false
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_MP_SANDBOX=$NEXT_PUBLIC_MP_SANDBOX
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY packages/ packages/
-COPY apps/web/ apps/web/
+COPY apps/web/package.json ./
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
 
-RUN pnpm install --frozen-lockfile
-RUN pnpm --filter web build
+COPY apps/web/ ./
+RUN pnpm build
 
 # ── Stage 2: Runtime (Next.js standalone) ─────────────────────────────────────
 FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
-COPY --from=builder /app/apps/web/.next/standalone/ ./
-COPY --from=builder /app/apps/web/.next/static/ ./apps/web/.next/static/
-COPY --from=builder /app/apps/web/public/ ./apps/web/public/
+# standalone contiene todo lo necesario para correr sin node_modules
+COPY --from=builder /app/.next/standalone/ ./
+COPY --from=builder /app/.next/static/ ./.next/static/
+COPY --from=builder /app/public/ ./public/
 
 EXPOSE 3000
-# En monorepo pnpm, standalone genera server.js relativo a la raíz del workspace
-CMD ["node", "apps/web/server.js"]
+CMD ["node", "server.js"]

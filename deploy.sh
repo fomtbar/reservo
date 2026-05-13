@@ -105,9 +105,12 @@ EOF
   success ".env.prod creado (permisos 600)"
 fi
 
-# Cargar NEXT_PUBLIC_API_URL para pasarla como build arg al compose
+# Exportar todas las vars del .env.prod al shell para que docker compose las vea
+# (set -a marca todo lo que siga como exportado automáticamente)
+set -a
 # shellcheck disable=SC1090
-source <(grep -v '^#' "$ENV_FILE" | grep -v '^$')
+source "$ENV_FILE"
+set +a
 
 # ── 3. Build de imágenes ──────────────────────────────────────────────────────
 title "Construyendo imágenes Docker"
