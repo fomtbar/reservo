@@ -169,7 +169,11 @@ export function BookingForm({ open, onClose, courtId, courtName, initialStart, i
             </div>
           )}
 
-          {save.error && <p className="text-xs text-destructive">{(save.error as Error).message}</p>}
+          {save.error && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {(save.error as Error).message}
+            </div>
+          )}
 
           <DialogFooter>
             <DialogClose asChild>

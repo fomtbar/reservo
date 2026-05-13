@@ -324,18 +324,30 @@ export class BookingsService {
     try {
       return await fn();
     } catch (e: unknown) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        // 23P01 = exclusion_violation — solapamiento de horario
-        const meta = e.meta as Record<string, unknown> | undefined;
-        const isOverlap =
-          e.code === 'P2010' &&
-          (String(meta?.['code']) === '23P01' ||
-            String(meta?.['message'] ?? '').includes('bookings_no_overlap'));
-        if (isOverlap) {
-          throw new ConflictException('El horario solicitado se solapa con otra reserva activa');
-        }
+      if (this.isOverlapError(e)) {
+        throw new ConflictException('El horario solicitado se solapa con otra reserva activa');
       }
       throw e;
     }
+  }
+
+  private isOverlapError(e: unknown): boolean {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      const meta = e.meta as Record<string, unknown> | undefined;
+      if (
+        e.code === 'P2010' &&
+        (String(meta?.['code']) === '23P01' ||
+          String(meta?.['message'] ?? '').includes('bookings_no_overlap') ||
+          String(meta?.['message'] ?? '').includes('23P01'))
+      )
+        return true;
+    }
+    // PrismaClientUnknownRequestError passes the raw PG error — code lives at top level or in cause
+    const anyErr = e as { code?: string; cause?: unknown };
+    if (anyErr?.code === '23P01') return true;
+    const cause = anyErr?.cause as { code?: string } | undefined;
+    if (cause?.code === '23P01') return true;
+    if (e instanceof Error && e.message.includes('23P01')) return true;
+    return false;
   }
 }

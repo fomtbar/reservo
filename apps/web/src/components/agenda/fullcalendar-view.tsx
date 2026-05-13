@@ -66,6 +66,11 @@ export default function FullCalendarView({ courts, bookings, date, onSlotClick, 
         nowIndicator
         selectable
         selectMirror
+        selectOverlap={(event) => {
+          const status = (event.extendedProps.booking as { status?: string } | undefined)?.status;
+          // Allow selecting over completed/no-show history; block active bookings
+          return status === 'COMPLETED' || status === 'NO_SHOW';
+        }}
         select={(info) => {
           const courtId = info.resource?.id;
           const courtName = info.resource?.title;
