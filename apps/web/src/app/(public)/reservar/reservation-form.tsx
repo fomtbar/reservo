@@ -53,7 +53,7 @@ export function ReservationForm({
     debounceRef.current = setTimeout(async () => {
       setPromo({ status: 'loading' });
       try {
-        const result = await apiFetch(
+        const result = await apiFetch<{ valid: boolean; description?: string; code?: string; reason?: string }>(
           `/promo-codes/validate?code=${encodeURIComponent(value.trim())}&amount=1&courtId=${slot.courtId}`,
         );
         if (result.valid) {

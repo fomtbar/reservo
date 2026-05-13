@@ -89,7 +89,7 @@ function ReservaPageContent() {
       if (settings?.requireDepositForWeb && settings.mpEnabled) {
         setRedirectingToMp(true);
         try {
-          const checkout = await apiFetch(`/bookings/${booking.id}/mp-checkout`, {
+          const checkout = await apiFetch<{ initPoint: string; sandboxInitPoint: string }>(`/bookings/${booking.id}/mp-checkout`, {
             method: 'POST',
             body: { returnBaseUrl: window.location.origin },
           });
