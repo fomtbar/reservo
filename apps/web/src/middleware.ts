@@ -2,8 +2,12 @@ import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 export default auth((req) => {
-  const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
+  const session = req.auth;
+
+  // Session exists but refresh token has expired → treat as logged out
+  const sessionExpired = session?.error === 'RefreshTokenExpired';
+  const isLoggedIn = !!session && !sessionExpired;
 
   const isPublic =
     pathname === '/' ||
@@ -15,7 +19,7 @@ export default auth((req) => {
 
   if (!isLoggedIn && !isPublic) {
     const url = new URL('/login', req.url);
-    url.searchParams.set('callbackUrl', pathname);
+    if (!sessionExpired) url.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(url);
   }
 

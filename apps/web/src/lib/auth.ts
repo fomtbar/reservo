@@ -106,7 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return {
         ...session,
         accessToken: token.accessToken as string,
-        error: token.error as string | undefined,
+        error: token.error,
         user: {
           ...session.user,
           id: token.id as string,
