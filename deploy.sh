@@ -136,13 +136,23 @@ success "PostgreSQL listo"
 # ── 5. Migraciones ────────────────────────────────────────────────────────────
 title "Aplicando migraciones de Prisma"
 
-$COMPOSE run --rm api npx prisma migrate deploy
+$COMPOSE run --rm \
+  -e DATABASE_URL="$DATABASE_URL" \
+  api npx prisma migrate deploy \
+  || error "Las migraciones fallaron. Revisá los logs con: $COMPOSE logs api"
+
 success "Migraciones aplicadas"
 
 # ── 6. Seed del admin ─────────────────────────────────────────────────────────
 title "Creando usuario admin inicial"
 
-$COMPOSE run --rm api npx prisma db seed
+$COMPOSE run --rm \
+  -e DATABASE_URL="$DATABASE_URL" \
+  -e SEED_ADMIN_EMAIL="$SEED_ADMIN_EMAIL" \
+  -e SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" \
+  api npx prisma db seed \
+  || error "El seed falló. Revisá los logs con: $COMPOSE logs api"
+
 success "Seed completado"
 
 # ── 7. Levantar todo ──────────────────────────────────────────────────────────
