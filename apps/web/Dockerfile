@@ -21,9 +21,9 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # standalone contiene todo lo necesario para correr sin node_modules
+# (apps/web no tiene carpeta public/ — si se agregara en el futuro, descomentar la línea)
 COPY --from=builder /app/.next/standalone/ ./
 COPY --from=builder /app/.next/static/ ./.next/static/
-COPY --from=builder /app/public/ ./public/
 
 EXPOSE 3000
 CMD ["node", "server.js"]
