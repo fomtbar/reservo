@@ -34,6 +34,7 @@ async function refreshAccessToken(refreshToken: string) {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {
