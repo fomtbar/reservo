@@ -50,6 +50,9 @@ services:
         NEXT_PUBLIC_MP_SANDBOX: "false"
     container_name: reservo-web
     env_file: .env.prod
+    environment:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
     ports:
       - "3000:3000"
     depends_on:
